@@ -1,0 +1,76 @@
+/* ============================================================
+   typography.css — Schriften & Textstile
+   ============================================================ */
+
+body {
+  font-family: var(--font-main);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--text);
+  line-height: var(--lh-tight);
+  overflow-wrap: break-word;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+h4 {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+p {
+  font-size: var(--fs-base);
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 0;
+}
+
+p strong { color: var(--text); }
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover { color: var(--accent); }
+
+code, pre {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  background: var(--bg2);
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 0.75rem;
+}

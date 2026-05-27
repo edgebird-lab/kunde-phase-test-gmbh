@@ -1,0 +1,382 @@
+---
+/**
+ * BaseLayout — HTML-Wurzel für jede generierte Seite.
+ *
+ * v4-Erweiterungen:
+ *   • fontImportUrl  → Google-Fonts-URL als <link> im <head> (statt @import in CSS)
+ *   • footer         → komplette Footer-Config wird an Footer.astro durchgereicht
+ */
+import Navigation from "../components/Navigation.astro";
+import type { NavHeaderConfig } from "../components/NavBrandMark.astro";
+import Footer, { type FooterConfig } from "../components/Footer.astro";
+import SchemaOrg from "../components/SchemaOrg.astro";
+import "../styles/global.css";
+
+export interface Props {
+  title: string;
+  description?: string;
+  /** When set, used as the full document / OG / Twitter title instead of `title` + brand suffix. */
+  documentTitle?: string | null;
+  brandName: string;
+  theme?: "dark" | "light" | "neutral";
+  /** Primary: nur erste Leiste / Sidebar-Strip (inline). */
+  pages: Array<{ slug: string; title: string; isHome?: boolean }>;
+  /** Primary: nur Aufklapp-Menü (zusätzliche Links). */
+  flyoutPages?: Array<{ slug: string; title: string; isHome?: boolean }>;
+  /** Primary in Seitenreihenfolge (Mobil / Erreichbarkeit — strip ∪ overlay). */
+  primaryOrderedPages?: Array<{ slug: string; title: string; isHome?: boolean }>;
+  /** Primary nur mit „Im Aufklapp-Menü“ — großes Desktop-Menü-Panel (optional; Standard = wie bisher volle Liste). */
+  primaryOverlayOrderedPages?: Array<{ slug: string; title: string; isHome?: boolean }>;
+  /** Zweites Menüband (unter Hauptzeile / Sidebar-Block). */
+  secondaryPages?: Array<{ slug: string; title: string; isHome?: boolean }>;
+  contact?: { phone?: string; email?: string; address?: string };
+  showWhatsApp?: boolean;
+  showCookieBanner?: boolean;
+  fontImportUrl?: string | null;
+  /** Preload hints für woff2-Font-Dateien (verhindert CLS durch Late-Font-Swap). */
+  fontPreloadUrls?: string[] | null;
+  footer?: FooterConfig;
+  previewId?: string | null;
+  header?: NavHeaderConfig | null;
+  /** top | sidebar | hamburger — aus appearance.navigation.type */
+  navType?: "top" | "sidebar" | "hamburger";
+  /** Nur bei Sidebar: Hamburger auch auf Desktop (Menü im Aufklapp-Panel). */
+  sidebarShowHamburger?: boolean;
+  /** Nur bei Top: Hamburger-Toggle zusätzlich auf Desktop (horizontale Links bleiben). */
+  topShowHamburger?: boolean;
+  seo?: {
+    siteName?: string;
+    siteUrl?: string;
+    defaultTitlePattern?: string;
+    defaultDescription?: string;
+    robotsIndex?: boolean;
+    robotsFollow?: boolean;
+    orgType?: string;
+    socialImage?: { src?: string | null; alt?: string };
+  };
+  canonicalUrl?: string | null;
+  /** Raw CSS string injected as <style> in <head> — used for dynamic token overrides (e.g. preview). */
+  headStyle?: string | null;
+  /** URL des LCP-Bildes (z. B. Hero-Hintergrundbild) — wird als <link rel="preload"> eingefügt. */
+  lcpImageUrl?: string | null;
+  /** Srcset für den LCP-Preload (imagesrcset) — damit der Browser die richtige Größe vorab lädt. */
+  lcpImageSrcset?: string | null;
+}
+
+const {
+  title,
+  description = "",
+  documentTitle = null,
+  brandName,
+  theme = "dark",
+  pages,
+  flyoutPages: flyoutPagesRaw = [],
+  primaryOrderedPages: primaryOrderedRaw = [],
+  primaryOverlayOrderedPages: primaryOverlayOrderedRaw,
+  secondaryPages: secondaryPagesRaw = [],
+  contact,
+  showWhatsApp = false,
+  showCookieBanner = false,
+  fontImportUrl = null,
+  fontPreloadUrls = null,
+  footer = {},
+  previewId = null,
+  header = null,
+  navType = "top",
+  sidebarShowHamburger = false,
+  topShowHamburger = false,
+  seo = {},
+  canonicalUrl = null,
+  headStyle = null,
+  lcpImageUrl = null,
+  lcpImageSrcset = null,
+} = Astro.props;
+
+/** Builder SSR preview (`/preview?id=…`) — fixed “back” chrome (new tab has no browser history). */
+const isPreviewSession = !!previewId;
+
+const secondaryPages = Array.isArray(secondaryPagesRaw) ? secondaryPagesRaw : [];
+const flyoutPages = Array.isArray(flyoutPagesRaw) ? flyoutPagesRaw : [];
+const primaryOrderedPages = (() => {
+  if (Array.isArray(primaryOrderedRaw) && primaryOrderedRaw.length) return primaryOrderedRaw;
+  const merged: Array<{ slug: string; title: string; isHome?: boolean }> = [...pages];
+  const seen = new Set(pages.map((p) => p.slug));
+  for (const p of flyoutPages) {
+    if (!seen.has(p.slug)) {
+      seen.add(p.slug);
+      merged.push(p);
+    }
+  }
+  return merged;
+})();
+const footerPages = (() => {
+  const merged: Array<{ slug: string; title: string; isHome?: boolean }> = [...primaryOrderedPages];
+  const seen = new Set(primaryOrderedPages.map((p) => p.slug));
+  for (const p of secondaryPages) {
+    if (!seen.has(p.slug)) {
+      seen.add(p.slug);
+      merged.push(p);
+    }
+  }
+  return merged;
+})();
+
+const navVariant: "top" | "sidebar" | "hamburger" =
+  navType === "sidebar" || navType === "hamburger" ? navType : "top";
+
+const dataTheme = theme === "light" ? "light" : "dark";
+const titleSuffix = brandName?.trim() ? ` — ${brandName.trim()}` : "";
+const metaTitle = (documentTitle && String(documentTitle).trim()) || `${title}${titleSuffix}`;
+const siteName = seo.siteName?.trim() || brandName;
+const seoDescription = seo.defaultDescription?.trim() || description;
+const robots = `${seo.robotsIndex === false ? "noindex" : "index"}, ${seo.robotsFollow === false ? "nofollow" : "follow"}`;
+const normalizedSiteUrl = String(seo.siteUrl || "").trim().replace(/\/+$/, "");
+let lcpImageOrigin: string | null = null;
+if (lcpImageUrl) {
+  try {
+    const _lcpU = new URL(lcpImageUrl);
+    const _siteOrigin = normalizedSiteUrl ? new URL(normalizedSiteUrl).origin : null;
+    if (_lcpU.origin !== _siteOrigin) lcpImageOrigin = _lcpU.origin;
+  } catch {}
+}
+const fallbackCanonical = normalizedSiteUrl
+  ? `${normalizedSiteUrl}${Astro.url.pathname === "/" ? "" : Astro.url.pathname}`
+  : null;
+const pageCanonical = canonicalUrl || fallbackCanonical;
+const socialImageSrc = seo.socialImage?.src || null;
+const socialImageAlt = seo.socialImage?.alt || `${siteName} Vorschau`;
+---
+
+<!doctype html>
+<html lang="de" data-theme={dataTheme}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={seoDescription} />
+    <meta name="robots" content={robots} />
+    {pageCanonical && <link rel="canonical" href={pageCanonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={metaTitle} />
+    <meta property="og:description" content={seoDescription} />
+    {pageCanonical && <meta property="og:url" content={pageCanonical} />}
+    <meta property="og:site_name" content={siteName} />
+    {socialImageSrc && <meta property="og:image" content={socialImageSrc} />}
+    {socialImageSrc && <meta property="og:image:alt" content={socialImageAlt} />}
+    <meta name="twitter:card" content={socialImageSrc ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={metaTitle} />
+    <meta name="twitter:description" content={seoDescription} />
+    {socialImageSrc && <meta name="twitter:image" content={socialImageSrc} />}
+    {socialImageSrc && <meta name="twitter:image:alt" content={socialImageAlt} />}
+    <link rel="icon" href="/favicon.svg" />
+    {lcpImageUrl && (
+      <link
+        rel="preload"
+        as="image"
+        href={lcpImageUrl}
+        imagesrcset={lcpImageSrcset || undefined}
+        imagesizes={lcpImageSrcset ? "100vw" : undefined}
+        fetchpriority="high"
+      />
+    )}
+    {lcpImageOrigin && <link rel="preconnect" href={lcpImageOrigin} />}
+    {fontImportUrl && <link rel="preconnect" href="https://fonts.googleapis.com" />}
+    {fontImportUrl && <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />}
+    {fontPreloadUrls?.map((url) => (
+      <link rel="preload" as="font" href={url} crossorigin="anonymous" fetchpriority="low" />
+    ))}
+    {fontImportUrl && <Fragment set:html={`<link rel="preload" href="${fontImportUrl}" as="style" onload="this.onload=null;this.rel='stylesheet'">`} />}
+    {fontImportUrl && <noscript><link rel="stylesheet" href={fontImportUrl} /></noscript>}
+    <SchemaOrg
+      siteName={siteName}
+      siteUrl={normalizedSiteUrl}
+      description={seoDescription}
+      orgType={seo.orgType || "Organization"}
+      logoUrl={socialImageSrc}
+    />
+    <title>{metaTitle}</title>
+    {headStyle && <Fragment set:html={`<style>${headStyle}</style>`} />}
+  </head>
+  <body
+    class:list={[
+      "layout-root",
+      `layout-root--nav-${navVariant}`,
+      isPreviewSession && "layout-root--preview",
+    ]}
+  >
+    {isPreviewSession && (
+      <div class="preview-back-bar" role="navigation" aria-label="Vorschau">
+        <a href="/builder" class="preview-back-bar__link" id="preview-back-link">
+          <span class="preview-back-bar__icon" aria-hidden="true">←</span>
+          Zurück zum Konfigurator
+        </a>
+      </div>
+      <script>
+        const _link = document.getElementById('preview-back-link');
+        if (_link) {
+          _link.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.close();
+            // Fallback: if window.close() had no effect (e.g. URL typed manually), navigate normally.
+            window.location.href = '/builder';
+          });
+        }
+      </script>
+    )}
+    <Navigation
+      brandName={brandName}
+      pages={pages}
+      flyoutPages={flyoutPages}
+      primaryOrderedPages={primaryOrderedPages}
+      primaryOverlayOrderedPages={primaryOverlayOrderedRaw}
+      secondaryPages={secondaryPages}
+      previewId={previewId}
+      header={header}
+      variant={navVariant}
+      sidebarShowHamburger={sidebarShowHamburger}
+      topShowHamburger={topShowHamburger}
+    />
+
+    <main class="layout-main">
+      <slot />
+    </main>
+
+    <Footer brandName={brandName} pages={footerPages} contact={contact} footer={footer} previewId={previewId} />
+
+    {showWhatsApp && contact?.phone && (
+      <a
+        class="whatsapp-fab"
+        href={`https://wa.me/${contact.phone.replace(/\D/g, "")}`}
+        target="_blank"
+        rel="noopener"
+        aria-label="WhatsApp kontaktieren"
+      >
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <path fill="currentColor" d="M19.05 4.91A10 10 0 0 0 12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.78 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.89-7zM12.04 20.18h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.16 8.16 0 0 1-1.26-4.41c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.42 5.83c0 4.54-3.7 8.25-8.26 8.25z"/>
+        </svg>
+      </a>
+    )}
+
+    {showCookieBanner && (
+      <div id="cookie-banner" class="cookie-banner" hidden>
+        <p>Wir nutzen technisch notwendige Cookies. Mehr in der Datenschutzerklärung.</p>
+        <button type="button" id="cookie-accept" class="btn btn-primary">OK</button>
+      </div>
+    )}
+
+    <script is:inline>
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("visible");
+            io.unobserve(e.target);
+          }
+        }
+      }, { threshold: 0.12 });
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+      const banner = document.getElementById("cookie-banner");
+      if (banner) {
+        if (!localStorage.getItem("cookies-ok")) banner.hidden = false;
+        document.getElementById("cookie-accept")?.addEventListener("click", () => {
+          localStorage.setItem("cookies-ok", "1");
+          banner.hidden = true;
+        });
+      }
+    </script>
+    <script is:inline type="module">
+      import { mountEffectsRuntime, unmountEffectsRuntime } from "/src/scripts/effects-runtime.ts";
+      mountEffectsRuntime();
+      document.addEventListener("astro:before-swap", () => {
+        unmountEffectsRuntime();
+      });
+      document.addEventListener("astro:after-swap", () => {
+        mountEffectsRuntime();
+      });
+    </script>
+
+    <style>
+      .layout-root--nav-sidebar .layout-main {
+        margin-left: var(--nav-sidebar-width, 260px);
+        min-height: 100vh;
+      }
+      @media (max-width: 768px) {
+        .layout-root--nav-sidebar .layout-main {
+          margin-left: 0;
+        }
+      }
+
+      .whatsapp-fab {
+        position: fixed; right: 1.25rem; bottom: 1.25rem;
+        width: 56px; height: 56px; border-radius: 999px;
+        background: #25d366; color: #fff;
+        display: inline-flex; align-items: center; justify-content: center;
+        box-shadow: var(--shadow-lg); z-index: 60;
+        transition: transform var(--transition-normal);
+      }
+      .whatsapp-fab:hover { transform: scale(1.06); color: #fff; }
+      .cookie-banner {
+        position: fixed; left: 50%; transform: translateX(-50%); bottom: 1.5rem;
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+        display: flex; gap: 1rem; align-items: center;
+        max-width: min(640px, calc(100% - 2rem)); z-index: 70;
+        box-shadow: var(--shadow-lg);
+      }
+      .cookie-banner p { margin: 0; }
+
+      /* —— Builder-Vorschau: Zurück-Link (Desktop öffnet oft neuen Tab ohne History) —— */
+      .layout-root--preview {
+        --preview-bar-height: 2.75rem;
+        padding-top: var(--preview-bar-height);
+      }
+
+      .preview-back-bar {
+        position: fixed;
+        inset: 0 0 auto 0;
+        height: var(--preview-bar-height);
+        box-sizing: border-box;
+        z-index: 85;
+        display: flex;
+        align-items: center;
+        padding-inline: max(1rem, env(safe-area-inset-left, 0px))
+          max(1rem, env(safe-area-inset-right, 0px));
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+        box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 45%, transparent);
+      }
+
+      .preview-back-bar__link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: var(--fs-sm, 0.875rem);
+        font-weight: 600;
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .preview-back-bar__link:hover {
+        text-decoration: underline;
+      }
+
+      .preview-back-bar__icon {
+        font-size: 1.1em;
+        line-height: 1;
+      }
+
+      .layout-root--preview .nav-root {
+        top: var(--preview-bar-height);
+      }
+
+      .layout-root--preview .nav-root--sidebar {
+        height: calc(100vh - var(--preview-bar-height));
+      }
+
+      @media (max-width: 768px) {
+        .layout-root--preview .nav-root--sidebar {
+          height: auto;
+        }
+      }
+    </style>
+  </body>
+</html>

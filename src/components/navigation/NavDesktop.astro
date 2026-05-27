@@ -1,0 +1,69 @@
+---
+import NavBrandMark from "../NavBrandMark.astro";
+import type { NavHeaderConfig } from "../NavBrandMark.astro";
+import { hrefForPage, type NavLinkContext } from "./helpers";
+import type { NavPageEntry, NavVariant } from "./types";
+
+export interface Props {
+  brandName: string;
+  fallbackTitle: string;
+  brandHref: string;
+  header?: NavHeaderConfig | null;
+  brandSlotStyle: Record<string, string>;
+  pages: NavPageEntry[];
+  secondaryPages: NavPageEntry[];
+  variant: NavVariant;
+  hasSecondary: boolean;
+  linkCtx: NavLinkContext;
+}
+
+const {
+  brandName,
+  fallbackTitle,
+  brandHref,
+  header: headerProp = null,
+  brandSlotStyle,
+  pages,
+  secondaryPages,
+  variant,
+  hasSecondary,
+  linkCtx,
+} = Astro.props;
+---
+
+<div class:list={["nav-inner", variant === "sidebar" ? "nav-inner--sidebar" : "nav-inner--topbar"]}>
+  <div class="nav-brand-slot" style={brandSlotStyle}>
+    <NavBrandMark brandName={brandName} fallbackTitle={fallbackTitle} brandHref={brandHref} header={headerProp} />
+  </div>
+  <div class="nav-links-slot">
+    <nav aria-label="Hauptnavigation">
+      <ul class:list={["nav-list", "nav-list--primary"]}>
+        {
+          pages.map((p) => (
+            <li>
+              <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    {
+      variant === "sidebar" && hasSecondary ? (
+        <nav aria-label="Zweitmenü" class="nav-secondary-inline">
+          <ul class:list={["nav-list", "nav-list--secondary"]}>
+            {secondaryPages.map((p) => (
+              <li>
+                <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null
+    }
+    <button type="button" class="nav-toggle" aria-label="Menü öffnen" aria-controls="mobile-menu" aria-expanded="false">
+      <span />
+      <span />
+      <span />
+    </button>
+  </div>
+</div>

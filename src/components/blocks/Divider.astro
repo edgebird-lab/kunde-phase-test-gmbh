@@ -1,0 +1,12 @@
+---
+export interface Props { style?: 'line'|'dashed'|'dotted'|'gradient'; }
+const { style: variant = 'line' } = Astro.props;
+---
+<div class={`blk-divider blk-divider-${variant}`}></div>
+<style>
+  .blk-divider { width: 100%; }
+  .blk-divider-line     { height: 1px; background: var(--line); }
+  .blk-divider-dashed   { height: 0; border-top: 1.5px dashed var(--line); }
+  .blk-divider-dotted   { height: 0; border-top: 2px dotted var(--line); }
+  .blk-divider-gradient { height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+</style>

@@ -1,0 +1,33 @@
+---
+import {
+  ctaHref,
+  ctaTarget,
+  ctaRel,
+  ctaHrefWithPreview,
+  ctaTargetWithPreview,
+  ctaRelWithPreview,
+  type ActionLike,
+  type PreviewLinkContext,
+} from "../../lib/cta.ts";
+export interface Props {
+  label?: string;
+  style?: 'primary'|'secondary'|'ghost';
+  action?: ActionLike | null;
+  align?: 'left'|'center'|'right';
+  /** Wenn gesetzt (Builder-Vorschau), bleiben `page`-Links unter `/preview`. */
+  previewLinkContext?: PreviewLinkContext | null;
+}
+const { label = 'Button', style = 'primary', action = null, align = 'left', previewLinkContext = null } = Astro.props;
+const pctx = previewLinkContext;
+---
+<div class={`blk-btn-wrap blk-align-${align}`}>
+  <a href={pctx ? ctaHrefWithPreview(action, pctx) : ctaHref(action)} target={pctx ? ctaTargetWithPreview(action, pctx) : ctaTarget(action)} rel={pctx ? ctaRelWithPreview(action, pctx) : ctaRel(action)} class={`btn btn-${style}`}>
+    {label}
+  </a>
+</div>
+<style>
+  .blk-btn-wrap { display: flex; }
+  .blk-align-left   { justify-content: flex-start; }
+  .blk-align-center { justify-content: center; }
+  .blk-align-right  { justify-content: flex-end; }
+</style>

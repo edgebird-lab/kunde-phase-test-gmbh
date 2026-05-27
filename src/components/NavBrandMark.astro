@@ -1,0 +1,241 @@
+---
+/**
+ * Marken-Link (Text, Logo oder beides) für die Navigation.
+ * Wird von Navigation.astro eingebunden — dieselbe Datei wird nach Thunder-Output kopiert.
+ */
+export interface NavHeaderConfig {
+  brandMode?: "text" | "logo" | "both";
+  /** @deprecated Nutze brandAlignPct; wird aus Spec noch gelesen */
+  brandAlign?: "start" | "center" | "end";
+  /** 0 = links in der Leiste, 50 = Mitte, 100 = rechts (Navigation leitet in Layout um) */
+  brandAlignPct?: number;
+  logoPlacement?: "above" | "below" | "left" | "right" | "behind";
+  /** 0–100: horizontale Lage des Logos relativ zur Textzeile, nur bei „above“ / „below“ */
+  logoStackAlign?: number;
+  /** 1–100, vor allem für „hinter der Schrift“ */
+  logoOpacity?: number;
+  logo?: { src?: string | null; uploadId?: string | null; alt?: string } | null;
+}
+
+interface Props {
+  brandName: string;
+  fallbackTitle: string;
+  brandHref: string;
+  header?: NavHeaderConfig | null;
+}
+
+const { brandName, fallbackTitle, brandHref, header: headerProp } = Astro.props;
+
+const h = headerProp || {};
+const mode = h.brandMode === "logo" ? "logo" : h.brandMode === "both" ? "both" : "text";
+const rawPlace = h.logoPlacement || "left";
+const PL = ["above", "below", "left", "right", "behind"] as const;
+type LogoPlace = (typeof PL)[number];
+const placement: LogoPlace = PL.includes(rawPlace as LogoPlace) ? (rawPlace as LogoPlace) : "left";
+const op = Number(h.logoOpacity);
+const logoOpacityPct = Number.isFinite(op) ? Math.min(100, Math.max(1, op)) : 100;
+const rawStack = Number(h.logoStackAlign);
+const logoStackAlign =
+  placement === "above" || placement === "below"
+    ? Number.isFinite(rawStack)
+      ? Math.min(100, Math.max(0, rawStack))
+      : 0
+    : 0;
+const logoImgRowColumns = `${logoStackAlign}fr minmax(0, max-content) ${100 - logoStackAlign}fr`;
+const logoSrc = h.logo?.src?.trim() || null;
+const safeBrandName = brandName || "";
+const imgAlt = (h.logo?.alt || "").trim() || safeBrandName.trim() || fallbackTitle;
+const brandText = safeBrandName.trim() || fallbackTitle;
+
+const effectiveShowLogo = (mode === "logo" || mode === "both") && !!logoSrc;
+const effectiveShowText = mode === "text" || mode === "both" || (mode === "logo" && !logoSrc);
+
+const imgOpacityStyle =
+  placement === "behind" && effectiveShowLogo
+    ? `opacity: ${(logoOpacityPct / 100).toFixed(3)}`
+    : undefined;
+---
+
+<a
+  href={brandHref}
+  class:list={["nav-brand-link", effectiveShowLogo && "nav-brand-link--hasimg"]}
+  aria-label={`${brandText} – Startseite`}
+>
+  <span class:list={["nav-brand-inner", `nav-brand-inner--${placement}`]}>
+    {
+      placement === "above" || placement === "below" ? (
+        <span class="nav-brand-stack-wrap">
+          {placement === "above" && (
+            <>
+              {effectiveShowLogo && (
+                <span
+                  class="nav-brand-logo-row"
+                  style={{ display: "grid", gridTemplateColumns: logoImgRowColumns }}
+                >
+                  <span class="nav-brand-grid-edge" aria-hidden="true" />
+                  <span class="nav-brand-logo-cell">
+                    <img
+                      class="nav-brand-img"
+                      src={logoSrc!}
+                      alt={imgAlt}
+                      width="180"
+                      height="48"
+                      loading="eager"
+                      style={imgOpacityStyle ?? undefined}
+                    />
+                  </span>
+                  <span class="nav-brand-grid-edge" aria-hidden="true" />
+                </span>
+              )}
+              {effectiveShowText && <span class="nav-brand-text">{brandText}</span>}
+            </>
+          )}
+          {placement === "below" && (
+            <>
+              {effectiveShowText && <span class="nav-brand-text">{brandText}</span>}
+              {effectiveShowLogo && (
+                <span
+                  class="nav-brand-logo-row"
+                  style={{ display: "grid", gridTemplateColumns: logoImgRowColumns }}
+                >
+                  <span class="nav-brand-grid-edge" aria-hidden="true" />
+                  <span class="nav-brand-logo-cell">
+                    <img
+                      class="nav-brand-img"
+                      src={logoSrc!}
+                      alt={imgAlt}
+                      width="180"
+                      height="48"
+                      loading="eager"
+                      style={imgOpacityStyle ?? undefined}
+                    />
+                  </span>
+                  <span class="nav-brand-grid-edge" aria-hidden="true" />
+                </span>
+              )}
+            </>
+          )}
+        </span>
+      ) : (
+        <>
+          {effectiveShowLogo && (
+            <img
+              class:list={["nav-brand-img", placement === "behind" && "nav-brand-img--behind"]}
+              src={logoSrc!}
+              alt={imgAlt}
+              width="180"
+              height="48"
+              loading="eager"
+              style={imgOpacityStyle ?? undefined}
+            />
+          )}
+          {effectiveShowText && <span class="nav-brand-text">{brandText}</span>}
+        </>
+      )
+    }
+  </span>
+</a>
+
+<style>
+  .nav-brand-link {
+    text-decoration: none;
+    /* Auf der Leiste liegt die Marke auf `nav`-Tönung — nicht global `--text` (oft zu ähnlich). */
+    color: var(--nav-text, var(--text));
+    min-width: 0;
+    display: block;
+  }
+  .nav-brand-link:hover {
+    color: var(--accent);
+  }
+  .nav-brand-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+  }
+  .nav-brand-inner--above,
+  .nav-brand-inner--below {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 0.45rem;
+  }
+  .nav-brand-stack-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .nav-brand-logo-row {
+    min-width: 0;
+    width: 100%;
+    align-items: center;
+  }
+  .nav-brand-logo-cell {
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .nav-brand-grid-edge {
+    min-width: 0;
+  }
+  .nav-brand-inner--left {
+    flex-direction: row;
+  }
+  .nav-brand-inner--right {
+    flex-direction: row;
+  }
+  .nav-brand-inner--right .nav-brand-img {
+    order: 2;
+  }
+  .nav-brand-inner--right .nav-brand-text {
+    order: 1;
+  }
+  .nav-brand-inner--behind {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.15rem 0.35rem;
+    min-height: 2.5rem;
+  }
+  .nav-brand-img {
+    max-height: 2.5rem;
+    width: auto;
+    max-width: min(200px, 28vw);
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .nav-brand-img--behind {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    max-width: min(280px, 40vw);
+    pointer-events: none;
+  }
+  .nav-brand-inner--behind .nav-brand-text {
+    position: relative;
+    z-index: 1;
+    font-weight: 800;
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+    text-shadow: 0 0 12px var(--bg, #0d0d0d), 0 1px 2px var(--bg, #0d0d0d);
+  }
+  .nav-brand-text {
+    font-weight: 800;
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .nav-brand-link:not(.nav-brand-link--hasimg) .nav-brand-text {
+    font-weight: 800;
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+  }
+</style>

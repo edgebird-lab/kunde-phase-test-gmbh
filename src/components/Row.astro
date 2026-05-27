@@ -1,0 +1,23 @@
+---
+export interface Props {
+  columnsTemplate?: string;
+  gap?: string;
+  verticalAlign?: 'start'|'center'|'end'|'stretch';
+  [key: string]: unknown;
+}
+const { columnsTemplate = '1fr', gap = '16px', verticalAlign = 'stretch', ...rest } = Astro.props;
+const valign = verticalAlign === 'center' ? 'center' : verticalAlign === 'end' ? 'flex-end' : verticalAlign === 'start' ? 'flex-start' : 'stretch';
+---
+<div class="thunder-row" style={`grid-template-columns: ${columnsTemplate}; gap: ${gap}; align-items: ${valign}`} {...rest}>
+  <slot />
+</div>
+<style>
+  .thunder-row {
+    display: grid;
+    width: 100%;
+  }
+  .thunder-row + .thunder-row { margin-top: 1rem; }
+  @media (max-width: 900px) {
+    .thunder-row { grid-template-columns: 1fr !important; }
+  }
+</style>

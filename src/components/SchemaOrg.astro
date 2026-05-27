@@ -1,0 +1,32 @@
+---
+interface Props {
+  siteName: string;
+  siteUrl?: string;
+  description?: string;
+  orgType?: string;
+  logoUrl?: string | null;
+}
+
+const {
+  siteName,
+  siteUrl = "",
+  description = "",
+  orgType = "Organization",
+  logoUrl = null,
+} = Astro.props;
+
+const normalizedUrl = String(siteUrl || "").trim().replace(/\/+$/, "");
+const graph: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": orgType || "Organization",
+  name: siteName || "Website",
+  description: description || undefined,
+  logo: logoUrl || undefined,
+};
+if (normalizedUrl) {
+  graph["@id"] = `${normalizedUrl}/#org`;
+  graph.url = normalizedUrl;
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(graph)} />

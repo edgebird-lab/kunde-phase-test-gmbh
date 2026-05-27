@@ -1,0 +1,13 @@
+---
+export interface Props { value?: string; label?: string; }
+const { value = '0', label = '' } = Astro.props;
+---
+<div class="blk-stat">
+  <div class="blk-stat-value">{value}</div>
+  <div class="blk-stat-label">{label}</div>
+</div>
+<style>
+  .blk-stat { text-align: center; padding: 1rem; }
+  .blk-stat-value { font-size: var(--fs-xxl); font-weight: 900; color: var(--accent); line-height: 1; }
+  .blk-stat-label { font-size: var(--fs-xs); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: .5rem; }
+</style>

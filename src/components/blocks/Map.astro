@@ -1,0 +1,96 @@
+---
+import { geocodeForOsmEmbed } from '../../lib/osm-geocode.ts';
+
+export interface Props {
+  address?: string;
+  zoom?: number;
+}
+
+const { address = '', zoom = 14 } = Astro.props;
+const trimmed = address.trim();
+
+let osmSrc: string | null = null;
+const googleMapsUrl = trimmed
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`
+  : null;
+
+if (trimmed) {
+  const coords = await geocodeForOsmEmbed(trimmed, zoom);
+  if (coords) {
+    osmSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(coords.bbox)}&layer=mapnik&marker=${encodeURIComponent(coords.marker)}`;
+  }
+}
+
+const qEnc = trimmed ? encodeURIComponent(trimmed) : '';
+---
+
+{osmSrc ? (
+  <div class="blk-map">
+    <iframe
+      src={osmSrc}
+      title={`Karte: ${address}`}
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
+    <div class="blk-map-actions">
+      <a class="blk-map-link" href={`https://www.openstreetmap.org/search?query=${qEnc}`} target="_blank" rel="noopener">OpenStreetMap</a>
+      {googleMapsUrl && (
+        <a class="blk-map-link blk-map-link--secondary" href={googleMapsUrl} target="_blank" rel="noopener">Google Maps</a>
+      )}
+    </div>
+  </div>
+) : trimmed ? (
+  <div class="blk-map blk-map-fallback">
+    <div class="blk-map-fallback-inner">
+      <p class="blk-map-fallback-msg">
+        Karte konnte nicht geladen werden (Geocoding nicht erreichbar oder Adresse unklar).
+      </p>
+      <p class="blk-map-fallback-addr">{address}</p>
+      <div class="blk-map-actions blk-map-actions--static">
+        <a class="blk-map-link" href={`https://www.openstreetmap.org/search?query=${qEnc}`} target="_blank" rel="noopener">OpenStreetMap</a>
+        {googleMapsUrl && (
+          <a class="blk-map-link blk-map-link--secondary" href={googleMapsUrl} target="_blank" rel="noopener">Google Maps</a>
+        )}
+      </div>
+    </div>
+  </div>
+) : (
+  <div class="blk-map-placeholder">⌖ KARTE</div>
+)}
+<style>
+  .blk-map { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+  .blk-map iframe { width: 100%; height: 100%; border: 0; }
+  .blk-map-fallback {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg2); padding: 1rem;
+  }
+  .blk-map-fallback-inner { max-width: 28rem; text-align: center; }
+  .blk-map-fallback-msg {
+    margin: 0 0 0.5rem; font-size: var(--fs-sm, 0.875rem); color: var(--muted);
+    line-height: 1.5;
+  }
+  .blk-map-fallback-addr {
+    margin: 0 0 1rem; font-size: var(--fs-sm, 0.875rem); color: var(--text);
+    font-weight: 600; word-break: break-word;
+  }
+  .blk-map-actions {
+    position: absolute; bottom: .6rem; right: .6rem;
+    display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end;
+    max-width: calc(100% - 1rem);
+  }
+  .blk-map-actions--static { position: static; justify-content: center; max-width: none; }
+  .blk-map-link {
+    padding: .35rem .75rem; font-size: var(--fs-xs);
+    background: var(--surface); color: var(--text);
+    border-radius: var(--radius-sm); border: 1px solid var(--line);
+    text-decoration: none;
+  }
+  .blk-map-link--secondary { opacity: 0.92; }
+  .blk-map-placeholder {
+    width: 100%; aspect-ratio: 4/3;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-weight: 700; letter-spacing: .15em;
+    border: 2px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+    background: var(--bg2); border-radius: var(--radius);
+  }
+</style>

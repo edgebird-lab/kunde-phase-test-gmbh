@@ -1,0 +1,73 @@
+---
+import { hrefForPage, type NavLinkContext } from "./helpers";
+import type { NavPageEntry, NavVariant } from "./types";
+
+export interface Props {
+  variant: NavVariant;
+  primaryMenu: NavPageEntry[];
+  primaryOverlayMenu: NavPageEntry[];
+  secondaryPages: NavPageEntry[];
+  hasSecondary: boolean;
+  linkCtx: NavLinkContext;
+}
+
+const {
+  variant,
+  primaryMenu,
+  primaryOverlayMenu,
+  secondaryPages,
+  hasSecondary,
+  linkCtx,
+} = Astro.props;
+---
+
+<div id="mobile-menu" class="nav-mobile" hidden>
+  {
+    variant === "hamburger" ? (
+      <ul class="nav-mobile__primary">
+        {
+          primaryMenu.map((p) => (
+            <li>
+              <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    ) : (
+      <>
+        <ul class:list={["nav-mobile__primary", "nav-mobile__primary--reachability"]}>
+          {
+            primaryMenu.map((p) => (
+              <li>
+                <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+              </li>
+            ))
+          }
+        </ul>
+        <ul class:list={["nav-mobile__primary", "nav-mobile__primary--overlay-desktop"]}>
+          {
+            primaryOverlayMenu.map((p) => (
+              <li>
+                <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </>
+    )
+  }
+  {
+    hasSecondary ? (
+      <>
+        <p class="nav-mobile__divider">Weitere Links</p>
+        <ul class="nav-mobile__secondary">
+          {secondaryPages.map((p) => (
+            <li>
+              <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+            </li>
+          ))}
+        </ul>
+      </>
+    ) : null
+  }
+</div>

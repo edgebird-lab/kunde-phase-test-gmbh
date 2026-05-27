@@ -1,0 +1,22 @@
+---
+export interface Props { raw?: string; }
+const { raw = '' } = Astro.props;
+const isFullPage = /^\s*<!DOCTYPE\s/i.test(raw) || /^\s*<html[\s>]/i.test(raw);
+---
+{isFullPage
+  ? <iframe
+      class="blk-html-fullpage"
+      srcdoc={raw}
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+      title="Eigenes HTML"
+    ></iframe>
+  : <div class="blk-html" set:html={raw}></div>
+}
+<style>
+  .blk-html-fullpage {
+    display: block;
+    width: 100%;
+    height: 100vh;
+    border: none;
+  }
+</style>

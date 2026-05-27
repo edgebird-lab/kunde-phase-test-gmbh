@@ -1,0 +1,73 @@
+/* ============================================================
+   global.css — EINSTIEGSPUNKT für jedes generierte Astro-Projekt
+   Importiert Tailwind + alle Library-Styles + die kunden-
+   spezifische tokens.css (zur Build-Zeit erzeugt).
+   ============================================================ */
+
+@import "tailwindcss" source(none);
+@source "..";
+
+/* Library-Defaults */
+@import "./variables.css";
+@import "./typography.css";
+@import "./base.css";
+@import "./components.css";
+
+/* Kunden-spezifische Token-Overrides (Brand-Farben aus JSON).
+   Wird vom Build-Script in /src/styles/ neben dieser Datei abgelegt. */
+@import "./tokens.css";
+
+@plugin "@tailwindcss/typography";
+
+/* ── Tailwind v4 Theme-Bridge ──────────────────────────────
+   Macht alle CSS-Variablen als Tailwind-Klassen verfügbar:
+   bg-bg, text-accent, border-line etc.
+   ────────────────────────────────────────────────────────── */
+@theme {
+  /* Hintergründe */
+  --color-bg:      var(--bg);
+  --color-bg2:     var(--bg2);
+  --color-bg3:     var(--bg3);
+  --color-surface: var(--surface);
+  --color-nav:     var(--nav);
+
+  /* Linien / Borders */
+  --color-line:    var(--line);
+
+  /* Text */
+  --color-text:    var(--text);
+  --color-muted:   var(--muted);
+
+  /* Akzente */
+  --color-accent:  var(--accent);
+  --color-accent2: var(--accent2);
+  --color-brand:   var(--brand);
+
+  /* Schriften */
+  --font-main: var(--font-main);
+  --font-mono: var(--font-mono);
+
+  /* Schriftgrößen */
+  --text-xs:   var(--fs-xs);
+  --text-sm:   var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-md:   var(--fs-md);
+  --text-lg:   var(--fs-lg);
+  --text-xl:   var(--fs-xl);
+  --text-xxl:  var(--fs-xxl);
+
+  /* Spacing (zusätzlich zu Tailwind-Defaults) */
+  --spacing-xs:  var(--space-xs);
+  --spacing-sm:  var(--space-sm);
+  --spacing-md:  var(--space-md);
+  --spacing-lg:  var(--space-lg);
+  --spacing-xl:  var(--space-xl);
+  --spacing-xxl: var(--space-xxl);
+
+  /* Radien */
+  --radius-sm: var(--radius-sm);
+  --radius:    var(--radius);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}

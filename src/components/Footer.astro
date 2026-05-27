@@ -1,0 +1,184 @@
+---
+/**
+ * Footer (v4) — komplett aus footer-Config gespeist.
+ *
+ * Erwartet:
+ *   brandName              — Firmenname für {brand}-Token im Copyright
+ *   pages                  — alle Seiten (für „Seiten"-Spalte, falls showPages)
+ *   contact                — phone/email/address (für „Kontakt"-Spalte, falls showContact)
+ *   footer                 — komplette v4-Footer-Config (siehe spec.js _serializeFooter)
+ */
+import {
+  ctaHrefWithPreview,
+  ctaTargetWithPreview,
+  ctaRelWithPreview,
+  type ActionLike,
+  type PreviewLinkContext,
+} from "../lib/cta.ts";
+
+export interface FooterLink {
+  label: string;
+  action?: ActionLike | null;
+}
+export interface FooterColumn {
+  title: string;
+  links: FooterLink[];
+}
+export interface FooterConfig {
+  copyright?: string;
+  showContact?: boolean;
+  showPages?: boolean;
+  legalLinks?: FooterLink[];
+  columns?: FooterColumn[];
+  extraNote?: string;
+}
+
+export interface Props {
+  brandName: string;
+  pages: Array<{ slug: string; title: string; isHome?: boolean }>;
+  contact?: { phone?: string; email?: string; address?: string };
+  footer?: FooterConfig;
+  previewId?: string | null;
+}
+const { brandName, pages, contact, footer = {}, previewId = null } = Astro.props as Props;
+
+const pageHref = (slug: string, isHome?: boolean) =>
+  previewId
+    ? `/preview?id=${encodeURIComponent(previewId)}&page=${encodeURIComponent(slug)}`
+    : isHome
+      ? "/"
+      : `/${slug}`;
+
+const previewCtx: PreviewLinkContext | null = previewId
+  ? { previewId, pages }
+  : null;
+
+const showContact = footer.showContact !== false;
+const showPages   = footer.showPages   !== false;
+const year = new Date().getFullYear();
+const copyrightTpl = footer.copyright || "© {year} {brand}. Alle Rechte vorbehalten.";
+const copyrightText = copyrightTpl
+  .replace(/\{year\}/g,  String(year))
+  .replace(/\{brand\}/g, brandName);
+const legalLinks = footer.legalLinks || [];
+const customColsRaw = footer.columns || [];
+const customCols = customColsRaw.filter(
+  (col) =>
+    (col.title || "").trim() ||
+    (col.links || []).some((l) => (l.label || "").trim()),
+);
+---
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      {brandName?.trim() && <p class="brand">{brandName}</p>}
+      {contact?.address && <p class="muted">{contact.address}</p>}
+      {footer.extraNote && <p class="muted footer-extra-note">{footer.extraNote}</p>}
+    </div>
+
+    {showPages && pages?.length > 0 && (
+      <nav aria-label="Footer-Navigation" class="footer-col">
+        <h4>Seiten</h4>
+        <ul>
+          {pages.map((p) => (
+            <li><a href={pageHref(p.slug, p.isHome)}>{p.title}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    {showContact && (contact?.phone || contact?.email) && (
+      <div class="footer-col">
+        <h4>Kontakt</h4>
+        <ul>
+          {contact?.phone && <li><a href={`tel:${contact.phone.replace(/\s+/g, "")}`}>{contact.phone}</a></li>}
+          {contact?.email && <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>}
+        </ul>
+      </div>
+    )}
+
+    {customCols.map((col) => {
+      const links = (col.links || []).filter((l) => (l.label || "").trim());
+      return (
+        <div class="footer-col">
+          {(col.title || "").trim() && <h4>{col.title}</h4>}
+          {links.length > 0 && (
+            <ul>
+              {links.map((l) => (
+                <li>
+                  <a
+                    href={ctaHrefWithPreview(l.action, previewCtx)}
+                    target={ctaTargetWithPreview(l.action, previewCtx)}
+                    rel={ctaRelWithPreview(l.action, previewCtx)}
+                  >{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    })}
+
+    {legalLinks.length > 0 && (
+      <div class="footer-col">
+        <h4>Rechtliches</h4>
+        <ul>
+          {legalLinks.map((l) => (
+            <li>
+              <a
+                href={ctaHrefWithPreview(l.action, previewCtx)}
+                target={ctaTargetWithPreview(l.action, previewCtx)}
+                rel={ctaRelWithPreview(l.action, previewCtx)}
+              >{l.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+
+  <div class="footer-bottom">
+    <small>{copyrightText}</small>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--nav, var(--bg)) 96%, transparent);
+    padding: var(--space-xl, 3rem) var(--section-padding-x, 5vw) var(--space-md, 1.5rem);
+    margin-top: var(--space-xxl, 5rem);
+  }
+  .footer-inner {
+    max-width: var(--container-max, 1200px);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-lg, 2rem);
+  }
+  .footer-col h4 {
+    font-size: var(--fs-sm, 0.875rem);
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .footer-col ul { list-style: none; margin: 0; padding: 0; }
+  .footer-col li { margin: 0.3rem 0; font-size: var(--fs-sm, 0.875rem); }
+  .footer-col a { color: var(--text); text-decoration: none; transition: color var(--transition-fast); }
+  .footer-col a:hover { color: var(--accent); }
+  .footer-brand .brand { font-size: var(--fs-md, 1.25rem); font-weight: 800; margin: 0 0 0.5rem; color: var(--text); }
+  .footer-brand .muted { color: color-mix(in srgb, var(--text) 88%, var(--bg) 12%); font-size: var(--fs-sm, 0.875rem); margin: 0 0 0.4rem; }
+  .footer-extra-note { font-style: italic; color: color-mix(in srgb, var(--text) 84%, var(--bg) 16%); opacity: 1; }
+  .footer-bottom {
+    max-width: var(--container-max, 1200px);
+    margin: var(--space-md, 1.5rem) auto 0;
+    padding-top: var(--space-md, 1.5rem);
+    border-top: 1px solid var(--line);
+    text-align: center;
+    color: color-mix(in srgb, var(--text) 86%, var(--bg) 14%);
+    font-size: var(--fs-xs, 0.75rem);
+  }
+</style>

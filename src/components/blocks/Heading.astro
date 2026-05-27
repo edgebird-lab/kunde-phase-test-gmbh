@@ -1,0 +1,24 @@
+---
+import { renderHeading, type RichText } from "../../lib/richtext.ts";
+export interface Props { level?: 1|2|3|4|5|6; value?: RichText; align?: 'left'|'center'|'right'; }
+const { level = 2, value, align = 'left' } = Astro.props;
+const tag = (`h${level}`) as 'h1'|'h2'|'h3'|'h4'|'h5'|'h6';
+const html = renderHeading(value as any, tag as any, '');
+---
+<div class={`blk-heading blk-align-${align}`} set:html={html}></div>
+<style>
+  .blk-heading :global(h1) { font-size: var(--fs-xxl); line-height: var(--lh-tight); margin: 0; font-weight: 800; }
+  .blk-heading :global(h2) { font-size: var(--fs-xl);  line-height: var(--lh-tight); margin: 0; font-weight: 700; }
+  .blk-heading :global(h3) { font-size: var(--fs-lg);  line-height: var(--lh-tight); margin: 0; font-weight: 700; }
+  .blk-heading :global(h4) { font-size: var(--fs-md);  line-height: var(--lh-tight); margin: 0; font-weight: 700; }
+  .blk-heading :global(h5),
+  .blk-heading :global(h6) { font-size: var(--fs-base); margin: 0; font-weight: 700; }
+  .blk-align-center :global(h1),
+  .blk-align-center :global(h2),
+  .blk-align-center :global(h3),
+  .blk-align-center :global(h4) { text-align: center; }
+  .blk-align-right  :global(h1),
+  .blk-align-right  :global(h2),
+  .blk-align-right  :global(h3),
+  .blk-align-right  :global(h4) { text-align: right; }
+</style>

@@ -1,0 +1,43 @@
+---
+import {
+  ctaHref,
+  ctaTarget,
+  ctaRel,
+  ctaHrefWithPreview,
+  ctaTargetWithPreview,
+  ctaRelWithPreview,
+  type ActionLike,
+  type PreviewLinkContext,
+} from "../../lib/cta.ts";
+export interface Props {
+  icon?: string;
+  title?: string;
+  text?: string;
+  link?: ActionLike | null;
+  previewLinkContext?: PreviewLinkContext | null;
+}
+const { icon = '◆', title = '', text = '', link = null, previewLinkContext = null } = Astro.props;
+const linkable = !!(link && link.target);
+const pctx = previewLinkContext;
+const Card = `<div class="blk-icon-card"><div class="blk-icon">${icon}</div><div class="blk-icon-title">${title}</div><div class="blk-icon-text">${text}</div></div>`;
+---
+{linkable ? (
+  <a href={pctx ? ctaHrefWithPreview(link, pctx) : ctaHref(link)} target={pctx ? ctaTargetWithPreview(link, pctx) : ctaTarget(link)} rel={pctx ? ctaRelWithPreview(link, pctx) : ctaRel(link)} class="blk-icon-link" set:html={Card}></a>
+) : (
+  <Fragment set:html={Card} />
+)}
+<style is:global>
+  .blk-icon-card {
+    background: var(--surface);
+    border-top: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.1rem;
+    transition: transform .2s ease, border-color .2s ease;
+    height: 100%;
+  }
+  .blk-icon-link:hover .blk-icon-card { transform: translateY(-2px); }
+  .blk-icon { font-size: 1.75rem; color: var(--accent); margin-bottom: .6rem; line-height: 1; }
+  .blk-icon-title { font-size: var(--fs-md); font-weight: 700; color: var(--text); margin-bottom: .35rem; }
+  .blk-icon-text  { font-size: var(--fs-base); color: var(--muted); line-height: 1.55; }
+  .blk-icon-link { display: block; text-decoration: none; color: inherit; }
+</style>

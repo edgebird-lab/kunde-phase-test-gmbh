@@ -1,0 +1,71 @@
+{
+  "builtAt": "2026-05-27T20:41:40.244Z",
+  "schemaVersion": "4.0",
+  "brand": "",
+  "slug": "website",
+  "pages": [
+    {
+      "slug": "neue-seite",
+      "title": "Neue Seite",
+      "isHome": true
+    }
+  ],
+  "blocks": [
+    "heading",
+    "image",
+    "list",
+    "text"
+  ],
+  "appearance": {
+    "fonts": {
+      "body": "Mulish",
+      "heading": "Barlow Condensed"
+    },
+    "radius": 4,
+    "tokens": {
+      "bg": "#ffffff",
+      "nav": "#0000ff",
+      "text": "#000000",
+      "accent": "#e87b2c",
+      "border": "#d9d9d9",
+      "accent2": "#821500",
+      "navText": "#f8fafc",
+      "surface": "#00ff00",
+      "surface2": "#00f500",
+      "linkColor": "#e87b2c",
+      "textMuted": "#737373"
+    },
+    "themeId": "custom",
+    "navigation": {
+      "type": "top",
+      "topShowHamburger": false,
+      "sidebarShowHamburger": false
+    }
+  },
+  "footer": {
+    "columns": [],
+    "copyright": "© {year} {brand}. Alle Rechte vorbehalten.",
+    "extraNote": "",
+    "showPages": true,
+    "legalLinks": [
+      {
+        "label": "Impressum",
+        "action": {
+          "type": "page",
+          "newTab": false,
+          "target": "impressum"
+        }
+      },
+      {
+        "label": "Datenschutz",
+        "action": {
+          "type": "page",
+          "newTab": false,
+          "target": "datenschutz"
+        }
+      }
+    ],
+    "showContact": true
+  },
+  "features": []
+}

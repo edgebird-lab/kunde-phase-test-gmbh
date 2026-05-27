@@ -1,0 +1,122 @@
+---
+/**
+ * v4 form block — POST/GET to a third-party endpoint (Formspree, Web3Forms, …).
+ * No server-side handling in this repo (Phase 1).
+ */
+export interface HiddenFieldRow {
+  name: string;
+  value: string;
+}
+
+export interface Props {
+  intent?: 'contact' | 'newsletter';
+  fields?: string[];
+  submitUrl?: string;
+  submitMethod?: 'POST' | 'GET';
+  /** e.g. Web3Forms `access_key`, Formspree `_gotcha`, etc. */
+  hiddenFields?: HiddenFieldRow[];
+}
+
+function normalizeHiddenFields(raw: unknown): HiddenFieldRow[] {
+  if (!Array.isArray(raw)) return [];
+  const out: HiddenFieldRow[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue;
+    const rec = row as Record<string, unknown>;
+    const name = String(rec.name ?? '').trim();
+    if (!name) continue;
+    out.push({ name, value: String(rec.value ?? '') });
+  }
+  return out;
+}
+
+const {
+  intent = 'contact',
+  fields = ['name', 'email', 'message'],
+  submitUrl = '',
+  submitMethod = 'POST',
+  hiddenFields: hiddenFieldsProp,
+} = Astro.props;
+
+const hiddenFields = normalizeHiddenFields(hiddenFieldsProp);
+
+const labels = { name: 'Name', email: 'E-Mail', phone: 'Telefon', subject: 'Betreff', message: 'Nachricht' } as Record<string, string>;
+const action = String(submitUrl || '').trim();
+const method = submitMethod === 'GET' ? 'GET' : 'POST';
+const hasAction = action.length > 0;
+---
+
+{hasAction ? (
+  <form class="blk-form" action={action} method={method}>
+    {hiddenFields.map((h) => (
+      <input type="hidden" name={h.name} value={h.value} />
+    ))}
+    {fields.map((f: string) => (
+      <label class="blk-form-row">
+        <span class="label">{labels[f] || f}</span>
+        {f === 'message' ? (
+          <textarea name={f} class="textarea" rows="4" required></textarea>
+        ) : (
+          <input
+            name={f}
+            type={f === 'email' ? 'email' : f === 'phone' ? 'tel' : 'text'}
+            class="input"
+            required
+          />
+        )}
+      </label>
+    ))}
+    <button type="submit" class="btn btn-primary">
+      {intent === 'newsletter' ? 'Abonnieren' : 'Senden'}
+    </button>
+  </form>
+) : (
+  <div class="blk-form blk-form--unconfigured">
+    <p class="blk-form-note" role="status">
+      Bitte im Konfigurator eine Versand-URL eintragen (z. B. von Formspree, Web3Forms oder Getform). Ohne URL kann das Formular nicht
+      abgesendet werden.
+    </p>
+    {fields.map((f: string) => (
+      <label class="blk-form-row">
+        <span class="label">{labels[f] || f}</span>
+        {f === 'message' ? (
+          <textarea name={f} class="textarea" rows="4" disabled></textarea>
+        ) : (
+          <input
+            name={f}
+            type={f === 'email' ? 'email' : f === 'phone' ? 'tel' : 'text'}
+            class="input"
+            disabled
+          />
+        )}
+      </label>
+    ))}
+    <button type="button" class="btn btn-primary" disabled>
+      {intent === 'newsletter' ? 'Abonnieren' : 'Senden'}
+    </button>
+  </div>
+)}
+
+<style>
+  .blk-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .blk-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .blk-form-note {
+    margin: 0 0 0.25rem;
+    font-size: var(--fs-sm, 0.875rem);
+    line-height: 1.45;
+    color: var(--muted, #888);
+  }
+  .blk-form--unconfigured .input,
+  .blk-form--unconfigured .textarea {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+</style>

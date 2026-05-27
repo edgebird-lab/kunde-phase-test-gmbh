@@ -1,0 +1,15 @@
+---
+import { renderRichText, type RichText } from "../../lib/richtext.ts";
+export interface Props { value?: RichText; align?: 'left'|'center'|'right'; }
+const { value, align = 'left' } = Astro.props;
+const html = renderRichText(value as any);
+---
+<div class={`blk-text blk-align-${align}`} set:html={html}></div>
+<style>
+  .blk-text :global(p) { margin: 0; line-height: 1.65; color: var(--text); opacity: .9; font-size: var(--fs-base); }
+  .blk-text :global(p + p) { margin-top: 0.6rem; }
+  .blk-text :global(strong) { color: var(--text); }
+  .blk-text :global(em)     { font-style: italic; }
+  .blk-align-center :global(p) { text-align: center; }
+  .blk-align-right  :global(p) { text-align: right; }
+</style>

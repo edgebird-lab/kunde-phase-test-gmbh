@@ -1,0 +1,19 @@
+---
+export interface Props { variant?: 'bullet'|'number'|'check'; items?: string[]; align?: 'left'|'center'|'right'; }
+const { variant = 'bullet', items = [], align = 'left' } = Astro.props;
+const Tag = variant === 'number' ? 'ol' : 'ul';
+---
+<Tag class={`blk-list blk-list-${variant} blk-align-${align}`}>
+  {items.filter((x: string) => x && x.trim()).map((it: string) => (
+    <li>{variant === 'check' ? <span class="check">✓</span> : null}<span>{it}</span></li>
+  ))}
+</Tag>
+<style>
+  .blk-list { padding-left: 1.5rem; margin: 0; color: var(--text); line-height: 1.6; }
+  .blk-list li { margin: .35rem 0; }
+  .blk-list-check { list-style: none; padding-left: 0; }
+  .blk-list-check li { display: flex; gap: .55rem; align-items: flex-start; }
+  .blk-list-check .check { color: var(--accent); font-weight: 700; flex-shrink: 0; }
+  .blk-align-center { text-align: center; }
+  .blk-align-right  { text-align: right; }
+</style>

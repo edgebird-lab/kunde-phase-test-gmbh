@@ -1,0 +1,51 @@
+---
+export interface Props {
+  hideOnMobile?: boolean;
+  hideOnDesktop?: boolean;
+  stackFill?: boolean;
+}
+const { hideOnMobile = false, hideOnDesktop = false, stackFill = false } = Astro.props;
+---
+<div class={`thunder-col ${hideOnMobile ? 'hide-mobile' : ''} ${hideOnDesktop ? 'hide-desktop' : ''} ${stackFill ? 'col-stack-fill' : ''}`}>
+  <slot />
+</div>
+<style>
+  .thunder-col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    height: 100%; /* fill grid cell so images can stretch */
+  }
+  /* Single image fills its column height automatically */
+  .thunder-col :global(.blk-img):only-child {
+    flex: 1 1 0;
+    min-height: 200px;
+  }
+  .thunder-col :global(.blk-img):only-child :global(.blk-img-el) {
+    height: 100%;
+    object-fit: cover;
+  }
+  .thunder-col :global(.blk-img):only-child :global(.blk-img-placeholder) {
+    aspect-ratio: unset;
+    min-height: 200px;
+    height: 100%;
+  }
+  .col-stack-fill {
+    height: 100%;
+    min-height: 300px;
+  }
+  .col-stack-fill > :global(*) {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+  .col-stack-fill :global(.blk-img) {
+    height: 100%;
+  }
+  .col-stack-fill :global(.blk-img-placeholder) {
+    aspect-ratio: unset;
+    min-height: unset;
+  }
+  @media (max-width: 768px)  { .hide-mobile  { display: none !important; } }
+  @media (min-width: 769px)  { .hide-desktop { display: none !important; } }
+</style>

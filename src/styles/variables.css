@@ -1,0 +1,89 @@
+/* ============================================================
+   variables.css — Design Token Defaults
+   ─────────────────────────────────────
+   ALLE Komponenten der Bibliothek nutzen ausschließlich diese
+   Variablen für Farben, Schriften, Spacing und Border-Radius.
+
+   Brand-spezifische Tokens (Accent, Background, Text) werden
+   NICHT hier hart gesetzt – sie kommen aus tokens.css, die zur
+   Build-Zeit aus appearance.tokens des JSON generiert wird und
+   diese Datei *überschreibt*.
+   ============================================================ */
+
+:root {
+
+  /* ── Schriftarten ──────────────────────────────────────── */
+  --font-main:     'Inter', system-ui, sans-serif;
+  --font-display:  'Inter', system-ui, sans-serif;
+  --font-body:     'Inter', system-ui, sans-serif;
+  --font-mono:     'JetBrains Mono', ui-monospace, monospace;
+  --font-size-base: 1rem;
+
+  /* ── Farben (Defaults — werden von tokens.css überschrieben) ─ */
+  --bg:       #0e121a;
+  --bg2:      #0d111a;
+  --bg3:      #111115;
+  --surface:  #1a1a1a;
+  --nav:      #111111;
+
+  --line:     rgba(255, 255, 255, 0.08);
+
+  --text:     #e8eaf0;
+  --muted:    #858687;
+
+  --accent:   #ff5e1a;
+  --accent2:  #fba753;
+
+  --brand:    #0f1f31;
+
+  /* ── Schriftgrößen-Skala ──────────────────────────────── */
+  --fs-xs:   0.75rem;
+  --fs-sm:   0.875rem;
+  --fs-base: 1rem;
+  --fs-md:   1.25rem;
+  --fs-lg:   1.5rem;
+  --fs-xl:   2rem;
+  --fs-xxl:  3rem;
+
+  /* ── Zeilenhöhen ───────────────────────────────────────── */
+  --lh-base:  1.6;
+  --lh-tight: 1.2;
+
+  /* ── Spacing-Skala ─────────────────────────────────────── */
+  --space-xs:  0.5rem;
+  --space-sm:  1rem;
+  --space-md:  1.5rem;
+  --space-lg:  2rem;
+  --space-xl:  3rem;
+  --space-xxl: 5rem;
+
+  /* ── Radien ────────────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius:    6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+
+  /* ── Transitions ───────────────────────────────────────── */
+  --transition-fast:   120ms ease;
+  --transition-normal: 220ms ease;
+  --transition-slow:   400ms ease;
+
+  /* ── Shadows ───────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+  --shadow:    0 4px 12px rgba(0,0,0,0.18);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.28);
+
+  /* ── Layout-Container ──────────────────────────────────── */
+  --container-max:    1200px;
+  --container-narrow: 800px;
+  --section-padding-y: 6rem;
+  --section-padding-x: 5vw;
+}
+
+/* NOTE:
+   The builder/runtime provides full color tokens via generated `tokens.css`
+   or inline `headStyle` (`:root { --bg, --text, ... }`).
+   A hard light-theme override here would win over token values due selector
+   specificity and collapse custom palettes to plain white/black.
+   Keep `[data-theme]` only as semantic marker; colors come from tokens. */

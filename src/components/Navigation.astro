@@ -1,0 +1,9 @@
+---
+/**
+ * Backward-compatible entry — re-exports types and composes navigation/Navigation.astro.
+ */
+export type { NavHeaderConfig, NavPageEntry, NavVariant, Props } from "./navigation/Navigation.astro";
+import Navigation from "./navigation/Navigation.astro";
+---
+
+<Navigation {...Astro.props} />

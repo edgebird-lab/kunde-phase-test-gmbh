@@ -1,0 +1,78 @@
+---
+import {
+  ctaHref,
+  ctaTarget,
+  ctaRel,
+  ctaHrefWithPreview,
+  ctaTargetWithPreview,
+  ctaRelWithPreview,
+  type ActionLike,
+  type PreviewLinkContext,
+} from "../../lib/cta.ts";
+export interface Props {
+  src?: string|null;
+  alt?: string;
+  fit?: 'cover'|'contain';
+  ratio?: '16:9'|'4:3'|'3:2'|'1:1'|'original';
+  link?: ActionLike | null;
+  previewLinkContext?: PreviewLinkContext | null;
+}
+const { src, alt = '', fit = 'cover', ratio = 'original', link = null, previewLinkContext = null } = Astro.props;
+const pctx = previewLinkContext;
+const ratioClass = ratio === '16:9' ? 'r-16-9' : ratio === '4:3' ? 'r-4-3' : ratio === '3:2' ? 'r-3-2' : ratio === '1:1' ? 'r-1-1' : 'r-org';
+
+// Directus image optimization: add WebP + srcset for /assets/ URLs
+function dxImg(rawSrc: string, width: number): string {
+  try {
+    if (!/https?:\/\/.+\/assets\//.test(rawSrc)) return rawSrc;
+    const u = new URL(rawSrc);
+    u.searchParams.set('width', String(width));
+    u.searchParams.delete('height');
+    u.searchParams.set('format', 'webp');
+    u.searchParams.set('quality', '45');
+    return u.toString();
+  } catch {
+    return rawSrc;
+  }
+}
+
+const isDxUrl = !!(src && /https?:\/\/.+\/assets\//.test(src));
+const imgSrc  = isDxUrl && src ? dxImg(src, 800) : (src ?? '');
+const imgSrcset = isDxUrl && src
+  ? [400, 800, 1200].map((w) => `${dxImg(src, w)} ${w}w`).join(', ')
+  : null;
+const imgSizes  = imgSrcset ? '(max-width: 480px) 95vw, (max-width: 768px) 80vw, 800px' : null;
+
+const safeAlt = alt.replace(/"/g, '&quot;');
+const srcsetAttr = imgSrcset ? ` srcset="${imgSrcset}" sizes="${imgSizes}"` : '';
+const Inner = imgSrc
+  ? `<img src="${imgSrc}"${srcsetAttr} alt="${safeAlt}" loading="lazy" decoding="async" class="blk-img-el" data-fit="${fit}" />`
+  : `<div class="blk-img-placeholder" aria-hidden="true">BILD</div>`;
+const linkable = !!(link && link.target);
+---
+{linkable ? (
+  <a href={pctx ? ctaHrefWithPreview(link, pctx) : ctaHref(link)} target={pctx ? ctaTargetWithPreview(link, pctx) : ctaTarget(link)} rel={pctx ? ctaRelWithPreview(link, pctx) : ctaRel(link)} class={`blk-img ${ratioClass}`}>
+    <Fragment set:html={Inner} />
+  </a>
+) : (
+  <div class={`blk-img ${ratioClass}`}>
+    <Fragment set:html={Inner} />
+  </div>
+)}
+<style>
+  .blk-img { display: block; width: 100%; overflow: hidden; border-radius: var(--radius); }
+  .blk-img.r-16-9 { aspect-ratio: 16 / 9; }
+  .blk-img.r-4-3  { aspect-ratio: 4 / 3; }
+  .blk-img.r-3-2  { aspect-ratio: 3 / 2; }
+  .blk-img.r-1-1  { aspect-ratio: 1 / 1; }
+  .blk-img :global(.blk-img-el) { width: 100%; height: 100%; display: block; }
+  .blk-img :global(.blk-img-el[data-fit="cover"]) { object-fit: cover; }
+  .blk-img :global(.blk-img-el[data-fit="contain"]) { object-fit: contain; background: var(--bg2); }
+  .blk-img :global(.blk-img-placeholder) {
+    width: 100%; min-height: 200px; aspect-ratio: 4 / 3;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-size: var(--fs-sm); font-weight: 700; letter-spacing: .12em;
+    border: 2px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+    background: var(--bg2);
+  }
+</style>

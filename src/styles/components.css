@@ -1,0 +1,383 @@
+/* ============================================================
+   components.css — Wiederverwendbare UI-Primitives
+   Buttons, Cards, Forms, Tags, Grid-Helpers
+   ============================================================ */
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: var(--fs-base);
+  line-height: 1;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--transition-normal),
+              color var(--transition-normal),
+              border-color var(--transition-normal),
+              transform var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); color: var(--bg); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--line);
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: transparent;
+}
+.btn-ghost:hover { color: var(--accent); }
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: border-color var(--transition-normal),
+              transform var(--transition-normal);
+}
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.card-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  color: var(--muted);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+}
+
+/* ── Tags / Badges ───────────────────────────────────────── */
+.tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--bg2);
+  color: var(--accent);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+
+/* ── Form-Inputs ─────────────────────────────────────────── */
+.input,
+.textarea,
+.select {
+  width: 100%;
+  background: var(--bg2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: var(--fs-base);
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.textarea { resize: vertical; min-height: 6rem; }
+
+.label {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+
+/* ── Grid-Helpers ────────────────────────────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+@media (max-width: 900px) {
+  .grid-3, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ── Section-Header (Eyebrow + Heading + Intro) ──────────── */
+.section-header {
+  margin-bottom: var(--space-xl);
+}
+.section-header.center {
+  text-align: center;
+  max-width: 720px;
+  margin-inline: auto;
+}
+.section-header h2 { margin-bottom: 0.75rem; }
+.section-header p  { color: var(--muted); font-size: var(--fs-md); line-height: 1.6; }
+
+/* ── Effects Runtime Targets (Step 1 contract) ───────────── */
+.thunder-effect-target {
+  --effect-duration: 600ms;
+  --effect-delay: 0ms;
+  --effect-easing: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.effect-ready {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thunder-effect-target {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.effect-text-reveal-mask-up {
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.effect-stagger-word {
+  opacity: 0;
+}
+
+.effect-text-typewriter {
+  min-height: 1em;
+}
+
+.effect-structure-parallax-scroll {
+  transform: translate3d(0, var(--effect-parallax-y, 0px), 0);
+  will-change: transform;
+}
+
+.effect-structure-sticky-reveal {
+  transition: opacity var(--effect-duration) var(--effect-easing), transform var(--effect-duration) var(--effect-easing);
+  opacity: 0;
+  transform: translateY(32px) scale(0.97);
+  will-change: opacity, transform;
+}
+
+.effect-sticky-revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Parallax Sticky: image sticks at top while subsequent sections scroll over it */
+.effect-structure-parallax-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 100svh;
+  width: 100%;
+}
+
+.effect-structure-parallax-sticky .blk-img {
+  height: 100% !important;
+  aspect-ratio: unset !important;
+  border-radius: 0 !important;
+}
+
+.effect-structure-parallax-sticky .blk-img > * {
+  display: block;
+  height: 100%;
+}
+
+.effect-structure-parallax-sticky .blk-img-el {
+  height: 100% !important;
+  width: 100% !important;
+  object-fit: cover !important;
+}
+
+.effect-structure-zoom-on-scroll {
+  --effect-zoom-min: 1;
+  --effect-zoom-max: 1.08;
+  transform: scale(calc(var(--effect-zoom-min) + (var(--effect-zoom-max) - var(--effect-zoom-min)) * var(--effect-scroll-progress, 0)));
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* ── Text: Fade Up ───────────────────────────────────────── */
+.effect-text-fade-up {
+  will-change: transform, opacity;
+}
+
+/* ── Text: Highlight Words ───────────────────────────────── */
+.effect-highlight-word {
+  display: inline;
+  background-image: linear-gradient(
+    var(--highlight-color, var(--accent, #ffd84d)),
+    var(--highlight-color, var(--accent, #ffd84d))
+  );
+  background-size: 0% 0.25em;
+  background-repeat: no-repeat;
+  background-position: 0 88%;
+  transition: background-size 0.45s ease;
+  padding-bottom: 0.05em;
+}
+
+.effect-highlight-word.effect-highlighted {
+  background-size: 100% 0.25em;
+}
+
+/* ── Text: Blur In ───────────────────────────────────────── */
+.effect-text-blur-in {
+  will-change: filter, opacity;
+}
+
+/* ── Structure: Slide In ─────────────────────────────────── */
+.effect-structure-slide-in {
+  will-change: transform, opacity;
+}
+
+/* ── Structure: Tilt Hover ───────────────────────────────── */
+.effect-structure-tilt-hover {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.15s ease-out;
+}
+
+/* ── Structure: Bounce In ────────────────────────────────── */
+.effect-structure-bounce-in {
+  will-change: transform, opacity;
+}
+
+/* ── Special: Container base ─────────────────────────────── */
+.effect-special-laser-scan,
+.effect-special-soft-particles,
+.effect-special-glow-pulse,
+.effect-special-confetti-burst {
+  position: relative;
+  overflow: hidden;
+}
+
+.effect-special-magnetic-hover {
+  position: relative;
+}
+
+.effect-laser-beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.05em;
+  height: var(--laser-thickness, 2px);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--laser-color, #ff3b30) calc(var(--laser-intensity, 0.8) * 100%), transparent) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 6px color-mix(in srgb, var(--laser-color, #ff3b30) 70%, transparent);
+  opacity: 0.95;
+  transform: translateX(-120%);
+  z-index: 2;
+}
+
+.effect-laser-beam--text {
+  left: 0.05em;
+  right: 0.05em;
+}
+
+.effect-particles-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.effect-particle {
+  position: absolute;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  animation-name: effect-particle-float;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes effect-particle-float {
+  from { transform: translateY(0) translateX(0); opacity: 0.25; }
+  to { transform: translateY(-16px) translateX(6px); opacity: 0.8; }
+}
+
+/* ── Special: Glow Pulse ─────────────────────────────────── */
+@keyframes effect-glow-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--glow-color-fade, rgba(255, 216, 77, 0.55)); }
+  70%  { box-shadow: 0 0 0 14px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.effect-glow-pulsing {
+  animation: effect-glow-pulse var(--glow-speed-ms, 1.8s) ease-out infinite;
+}
+
+/* ── Special: Magnetic Hover ─────────────────────────────── */
+.effect-special-magnetic-hover {
+  transition: transform 0.25s ease-out;
+  will-change: transform;
+}
+
+/* ── Special: Confetti Burst ─────────────────────────────── */
+.effect-special-confetti-burst {
+  overflow: visible;
+}
+
+.effect-confetti-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: effect-confetti-fall 1.2s ease-out forwards;
+}
+
+@keyframes effect-confetti-fall {
+  0%   { transform: translate(-50%, -50%) rotate(0deg) translate(0, 0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--cr, 360deg)) translate(var(--cx, 60px), var(--cy, -80px)); opacity: 0; }
+}

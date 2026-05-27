@@ -1,0 +1,51 @@
+---
+/**
+ * Zweites Menüband unter der Hauptzeile (top) bzw. unter der Hamburger-Leiste.
+ */
+import { hrefForPage, type NavLinkContext } from "./helpers";
+import type { NavPageEntry, NavVariant } from "./types";
+
+export interface Props {
+  variant: NavVariant;
+  secondaryPages: NavPageEntry[];
+  linkCtx: NavLinkContext;
+}
+
+const { variant, secondaryPages, linkCtx } = Astro.props;
+---
+
+{
+  variant === "top" ? (
+    <div class="nav-secondary-row">
+      <div class="nav-secondary-row__inner">
+        <nav aria-label="Zweitmenü">
+          <ul class:list={["nav-list", "nav-list--secondary"]}>
+            {secondaryPages.map((p) => (
+              <li>
+                <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  ) : null
+}
+
+{
+  variant === "hamburger" ? (
+    <div class="nav-secondary-row nav-secondary-row--hamburger">
+      <div class="nav-secondary-row__inner">
+        <nav aria-label="Zweitmenü">
+          <ul class:list={["nav-list", "nav-list--secondary"]}>
+            {secondaryPages.map((p) => (
+              <li>
+                <a href={hrefForPage(p, linkCtx)}>{p.title}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  ) : null
+}

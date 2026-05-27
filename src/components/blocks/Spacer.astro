@@ -1,0 +1,5 @@
+---
+export interface Props { height?: number; }
+const { height = 32 } = Astro.props;
+---
+<div class="blk-spacer" style={`height:${Math.max(0, Math.min(400, height))}px`}></div>
